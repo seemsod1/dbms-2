@@ -1,0 +1,227 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <a href="/">< Return to Home Page</a>
+        <h1>Queries</h1>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded-3 mb-3">
+                    <h2 class="mb-4">Simple Queries</h2>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form1" action="/simple-query/1" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form1', '/simple-query/1');">
+                            <div class="mb-3">
+                                <label for="userID" class="form-label">1. Cars rented by a specific user. Select User:</label>
+                                <select class="form-select" id="userID" name="userID">
+                                    {{range .Data.Users}}
+                                        <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form2" action="/simple-query/2" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form2', '/simple-query/2');">
+                            <div class="mb-3">
+                                <label for="brandName" class="form-label">2. Users who rented a car with a specific brand. Select Brand:</label>
+                                <select class="form-select" id="brandName" name="brandName">
+                                    {{range .Data.Brands}}
+                                        <option value="{{.}}">{{.}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form3" action="/simple-query/3" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form3', '/simple-query/3');">
+                            <div class="mb-3">
+                                <label for="userID" class="form-label">3. Total sum of all rents for a specific user. Select User:</label>
+                                <select class="form-select" id="userID" name="userID">
+                                    {{range .Data.Users}}
+                                        <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form4" action="/simple-query/4" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form4', '/simple-query/4');">
+                            <div class="mb-3">
+                                <label for="carID" class="form-label">4. Get assignments for a specific car. Select Car:</label>
+                                <select class="form-select" id="carID" name="carID">
+                                    {{range .Data.Cars}}
+                                        <option value="{{.ID}}">{{.Brand}} {{.Model}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form5" action="/simple-query/5" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form5', '/simple-query/5');">
+                            <div class="mb-3">
+                                <label for="assignmentID" class="form-label">5. Get cars with a specific assignment. Select Assignment:</label>
+                                <select class="form-select" id="assignmentID" name="assignmentID">
+                                    {{range .Data.Assignments}}
+                                        <option value="{{.ID}}">{{.Title}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded-3 mb-3">
+                    <h2 class="mb-4">Complex Queries</h2>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form6" action="/complex-query/1" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form6', '/complex-query/1');">
+                            <div class="mb-3">
+                                <label for="userID" class="form-label">1. Find rents for specific user with a specific car. Select User:</label>
+                                <select class="form-select" id="userID" name="userID">
+                                    {{range .Data.Users}}
+                                        <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
+                                    {{end}}
+                                </select>
+                                <label for="carID" class="form-label">Select Car:</label>
+                                <select class="form-select" id="carID" name="carID">
+                                    {{range .Data.Cars}}
+                                        <option value="{{.ID}}">{{.Brand}} {{.Model}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form7" action="/complex-query/2" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form7', '/complex-query/2');">
+                            <div class="mb-3">
+                                <label for="firstUserID" class="form-label">2. Find car which was rented by pair of users. Select first User:</label>
+                                <select class="form-select" id="firstUserID" name="firstUserID">
+                                    {{range .Data.Users}}
+                                        <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
+                                    {{end}}
+                                </select>
+                                <label for="secondUserID" class="form-label">Select second User:</label>
+                                <select class="form-select" id="secondUserID" name="secondUserID">
+                                    {{range .Data.Users}}
+                                        <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="border rounded p-3 mb-3">
+                        <form id="form8" action="/complex-query/3" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form8', '/complex-query/3');">
+                            <div class="mb-3">
+                                <label for="firstCarID" class="form-label">3. Find assignment similar for two cars. Select first Car:</label>
+                                <select class="form-select" id="firstCarID" name="firstCarID">
+                                    {{range .Data.Cars}}
+                                        <option value="{{.ID}}">{{.Brand}} {{.Model}}</option>
+                                    {{end}}
+                                </select>
+                                <label for="secondCarID" class="form-label">Select second Car:</label>
+                                <select class="form-select" id="secondCarID" name="secondCarID">
+                                    {{range .Data.Cars}}
+                                        <option value="{{.ID}}">{{.Brand}} {{.Model}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+
+        async function submitFormWithAjax(formId, url) {
+            const formData = new FormData(document.getElementById(formId));
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const responseData = await response.json();
+
+
+                    let tableContent = '<table class="table table-striped">';
+                    tableContent += '<thead><tr>';
+
+                    if (Array.isArray(responseData)) {
+                        const headers = Object.keys(responseData[0]);
+                        headers.forEach(header => {
+                            tableContent += `<th>${header}</th>`;
+                        });
+
+                        tableContent += '</tr></thead><tbody>';
+
+                        responseData.forEach(item => {
+                            tableContent += '<tr>';
+                            headers.forEach(header => {
+                                tableContent += `<td>${item[header]}</td>`;
+                            });
+                            tableContent += '</tr>';
+                        });
+                    } else if (responseData && responseData.total !== undefined) {
+                        var header = Object.keys(responseData)[0];
+                        tableContent += `<th>${header}</th>`;
+                        tableContent += '</tr></thead><tbody>';
+                        tableContent += `<tr><td>${responseData[header]}</td></tr>`;
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'No data received from the server',
+                            icon: 'error',
+                        });
+                        return;
+                    }
+
+                    tableContent += '</tbody></table>';
+
+                    Swal.fire({
+                        html: tableContent,
+                        width: '80%',
+                        title: Array.isArray(responseData) ? 'Users Data' : header,
+                    });
+
+                    document.getElementById(formId).reset();
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message,
+                        icon: 'error',
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: error.message,
+                    icon: 'error',
+                });
+            }
+        }
+
+
+
+    </script>
+{{end}}
+
+
+
+
+
+

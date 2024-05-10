@@ -1,0 +1,173 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <a href="/">< return to home page</a>
+        <h1>cars</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>Year</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range .Data.Cars}}
+                <tr data-id="{{.ID}}">
+                    <td>{{.ID}}</td>
+                    <td>{{.Brand}}</td>
+                    <td>{{.Model}}</td>
+                    <td>{{.Year}}</td>
+                    <td>
+                        <button class="btn btn-primary edit-btn">Edit</button>
+                        <button class="btn btn-danger delete-btn">Delete</button>
+                    </td>
+                </tr>
+            {{end}}
+            <tr>
+                <form id="addForm">
+                    <td id="lastRow"></td>
+                    <td><input type="text" class="form-control" placeholder="Brand Name" name="brandName" required></td>
+                    <td><input type="text" class="form-control" placeholder="Model Name" name="modelName" required></td>
+                    <td><input type="number" class="form-control" placeholder="Year" name="year" required></td>
+                    <td><button type="submit" class="btn btn-success">Add</button></td>
+                </form>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.body.addEventListener('click', function (event) {
+                if (event.target.classList.contains('edit-btn')) {
+                    const row = event.target.closest('tr');
+                    const id = row.getAttribute('data-id');
+                    const brandName = row.cells[1].textContent;
+                    const modelName = row.cells[2].textContent;
+                    const year = row.cells[3].textContent;
+
+                    Swal.fire({
+                        title: 'Edit Car',
+                        html: `
+                    <input id="swal-input1" class="swal2-input" value="${brandName}" placeholder="Brand Name">
+                    <input id="swal-input2" class="swal2-input" value="${modelName}" placeholder="Model Name">
+                    <input id="swal-input3" class="swal2-input" value="${year}" placeholder="Year">
+                `,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'Save',
+                        cancelButtonText: 'Cancel',
+                        preConfirm: () => {
+                            return [
+                                document.getElementById('swal-input1').value,
+                                document.getElementById('swal-input2').value,
+                                document.getElementById('swal-input3').value
+                            ];
+                        },
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            const [brandName, modelName, year] = result.value;
+                            if (validate(brandName, modelName, year)) {
+                                $.ajax({
+                                    method: 'PUT',
+                                    url: `/cars/update`,
+                                    data: { id, brandName, modelName, year },
+                                    success: function () {
+                                        row.cells[1].textContent = brandName;
+                                        row.cells[2].textContent = modelName;
+                                        row.cells[3].textContent = year;
+                                        notify('Car updated', 'success');
+                                    },
+                                    error: function () {
+                                        notify('Server error', 'error');
+                                    }
+                                });
+                            } else {
+                                notify('Invalid input', 'error');
+                            }
+                        }
+                    });
+                } else if (event.target.classList.contains('delete-btn')) {
+                    const row = event.target.closest('tr');
+                    const id = row.getAttribute('data-id');
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'You will not be able to recover this car!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'No, keep it'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                method: 'DELETE',
+                                url: `/cars/delete/${id}`,
+                                success: function () {
+                                    row.remove();
+                                    notify('Car deleted', 'success');
+                                },
+                                error: function () {
+                                    notify('Server error', 'error');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Add form submit event listener
+            $('#addForm').submit(function (e) {
+                e.preventDefault();
+                const brandName = this.brandName.value;
+                const modelName = this.modelName.value;
+                const year = this.year.value;
+
+                if (validate(brandName, modelName, year)) {
+                    $.ajax({
+                        method: 'POST',
+                        url: '/cars/create',
+                        data: { brandName, modelName, year },
+                        success: function (data) {
+                            var parsedData = JSON.parse(data);
+                            const table = document.querySelector('tbody');
+                            const newRow = table.insertRow(table.rows.length - 1);
+                            newRow.setAttribute('data-id', parsedData.ID);
+                            newRow.innerHTML = `
+                        <td>${parsedData.ID}</td>
+                        <td>${brandName}</td>
+                        <td>${modelName}</td>
+                        <td>${year}</td>
+                        <td>
+                            <button class="btn btn-primary edit-btn">Edit</button>
+                            <button class="btn btn-danger delete-btn">Delete</button>
+                        </td>
+                    `;
+                            document.getElementById('addForm').reset();
+                            notify('Car added', 'success');
+                        },
+                        error: function () {
+                            notify('Server error', 'error');
+                        }
+                    });
+                } else {
+                    notify('Invalid input', 'error');
+                }
+            });
+        });
+
+        function validate(brandName, modelName, year) {
+            if (brandName.trim() === '' || modelName.trim() === '' || year.trim() === '') {
+                return false;
+            }
+            const currentYear = new Date().getFullYear();
+            return !(isNaN(year) || year < 1900 || year > currentYear);
+        }
+    </script>
+{{end}}

@@ -1,0 +1,173 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <a href="/">< return to home page</a>
+        <h1>assignments_junction</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>CarID</th>
+                <th>AssignmentID</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range .Data.Cars}}
+                {{$index := .ID}}
+                {{range .Assignments}}
+                    <tr data-id="{{$index}}+{{.ID}}">
+                        <td>{{$index}}</td>
+                        <td>{{.ID}}</td>
+                        <td>
+                            <button class="btn btn-primary edit-btn">Edit</button>
+                            <button class="btn btn-danger delete-btn">Delete</button>
+                        </td>
+                    </tr>
+                {{end}}
+            {{end}}
+            <tr>
+                <form id="addForm">
+                    <td><input type="number" class="form-control" placeholder="CarID" name="carID" required></td>
+                    <td><input type="number" class="form-control" placeholder="AssignmentID" name="assignmentID" required></td>
+                    <td><button type="submit" class="btn btn-success">Add</button></td>
+                </form>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.body.addEventListener('click', function (event) {
+                if(event.target.classList.contains('edit-btn')){
+                    const row = event.target.closest('tr');
+                    const carID = row.cells[0].textContent;
+                    const assignmentID = row.cells[1].textContent;
+                    const [carIDold,assignmentIDold] = row.getAttribute('data-id').split('+');
+
+                    console.log(carID,assignmentID);
+                    Swal.fire({
+                        title: 'Edit assignment',
+                        html:`
+            <input type="number" id="swal-input1" class="swal2-input" value="${carID}">
+            <input type="number" id="swal-input2" class="swal2-input" value="${assignmentID}">
+            `,
+
+                        focusConfirm: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Save',
+                        cancelButtonText: 'Cancel',
+                        preConfirm: () => {
+                            return[
+                                document.getElementById('swal-input1').value,
+                                document.getElementById('swal-input2').value,
+                                parseInt(carIDold),
+                                parseInt(assignmentIDold),
+                            ];
+                        },
+                    }).then(result => {
+                        if(result.isConfirmed){
+                            const[carID,assignmentID,carIDold,assignmentIDold] = result.value;
+                            if(validate(carID,assignmentID)){
+                                $.ajax({
+                                    method: 'PUT',
+                                    url: '/assignments-junction/update',
+                                    data: {carID,assignmentID,carIDold,assignmentIDold},
+                                    success: function (){
+                                        row.cells[0].textContent = carID;
+                                        row.cells[1].textContent = assignmentID;
+                                        notify('Assignment_junction updated','success')
+                                    },
+                                    error: function (){
+                                        notify('Error updating assignment','error')
+                                    }
+                                });
+                            }else{
+                                notify('Invalid input', 'error');
+                            }
+                        }
+                    });
+                }else if(event.target.classList.contains('delete-btn')){
+                    const row = event.target.closest('tr');
+                    const carID = row.cells[0].textContent;
+                    const assignmentID = row.cells[1].textContent;
+
+                    Swal.fire({
+                        title:'Are you sure?',
+                        text: 'You will not be able to recover this assignment_junction!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'No, keep it!'
+                    }).then(result => {
+                        if (result.isConfirmed){
+                            $.ajax({
+                                method: 'DELETE',
+                                url: '/assignments-junction/delete/?carID='+carID+'&assignmentID='+assignmentID,
+                                success: function (){
+                                    row.remove();
+                                    notify('Assignment_junction deleted','success')
+                                },
+                                error: function (){
+                                    notify('Invalid input','error')
+                                }
+                            });
+                        }
+                    })
+                }
+            });
+
+            $('#addForm').submit(function (e){
+                e.preventDefault();
+                const carID = this.carID.value;
+                const assignmentID = this.assignmentID.value;
+
+                if(validate(carID,assignmentID)){
+                    $.ajax({
+                        method: 'POST',
+                        url: '/assignments-junction/create',
+                        data:{carID,assignmentID},
+                        success: function (data){
+                            const parsedData = JSON.parse(data);
+                            const table = document.querySelector('tbody');
+                            const newRow = table.insertRow(table.rows.length-1);
+                            newRow.setAttribute('data-id',parsedData.carID+'+'+parsedData.assignmentID);
+                            newRow.innerHTML=`
+                        <td>${carID}</td>
+                        <td>${assignmentID}</td>
+                        <td>
+                        <button class="btn btn-primary edit-btn">Edit</button>
+                        <button class="btn btn-danger delete-btn">Delete</button>
+                            </td>
+
+            `;
+                            document.getElementById('addForm').reset();
+                            notify('Assignment_junction added','success')
+                        },
+                        error: function (){
+                            notify('Invalid input','error')
+                        }
+                    });
+                }else{
+                    notify('Invalid input','error')
+                }
+
+
+
+            });
+
+
+
+
+
+        });
+
+        function validate(carID,assignmentID){
+            return !(isNaN(carID) || isNaN(assignmentID) || carID<0||assignmentID<0);
+        }
+
+    </script>
+{{end}}

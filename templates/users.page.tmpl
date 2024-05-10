@@ -1,0 +1,173 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <a href="/">< return to home page</a>
+        <h1>users</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range .Data.Users}}
+                <tr data-id="{{.ID}}">
+                    <td>{{.ID}}</td>
+                    <td>{{.FirstName}}</td>
+                    <td>{{.LastName}}</td>
+                    <td>{{.Email}}</td>
+                    <td>
+                        <button class="btn btn-primary edit-btn">Edit</button>
+                        <button class="btn btn-danger delete-btn">Delete</button>
+                    </td>
+                </tr>
+            {{end}}
+            <tr>
+                <form id="addForm">
+                    <td id="lastRow"></td>
+                    <td><input type="text" class="form-control" placeholder="First Name" name="firstName" required></td>
+                    <td><input type="text" class="form-control" placeholder="Last Name" name="lastName" required></td>
+                    <td><input type="email" class="form-control" placeholder="Email" name="email" required></td>
+                    <td><button type="submit" class="btn btn-success">Add</button></td>
+                </form>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.body.addEventListener('click', function (event) {
+                if (event.target.classList.contains('edit-btn')) {
+                    const row = event.target.closest('tr');
+                    const id = row.getAttribute('data-id');
+                    const firstName = row.cells[1].textContent;
+                    const lastName = row.cells[2].textContent;
+                    const email = row.cells[3].textContent;
+
+                    Swal.fire({
+                        title: 'Edit Car',
+                        html: `
+                    <input id="swal-input1" class="swal2-input" value="${firstName}" placeholder="First Name">
+                    <input id="swal-input2" class="swal2-input" value="${lastName}" placeholder="Last Name">
+                    <input id="swal-input3" class="swal2-input" value="${email}" placeholder="Email">
+                `,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'Save',
+                        cancelButtonText: 'Cancel',
+                        preConfirm: () => {
+                            return [
+                                document.getElementById('swal-input1').value,
+                                document.getElementById('swal-input2').value,
+                                document.getElementById('swal-input3').value
+                            ];
+                        },
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            const [firstName, lastName, email] = result.value;
+                            if (validate(firstName, lastName, email)) {
+                                $.ajax({
+                                    method: 'PUT',
+                                    url: `/users/update`,
+                                    data: { id, firstName, lastName, email },
+                                    success: function () {
+                                        row.cells[1].textContent = firstName;
+                                        row.cells[2].textContent = lastName;
+                                        row.cells[3].textContent = email;
+                                        notify('User updated', 'success');
+                                    },
+                                    error: function () {
+                                        notify('Server error', 'error');
+                                    }
+                                });
+                            } else {
+                                notify('Invalid input', 'error');
+                            }
+                        }
+                    });
+                } else if (event.target.classList.contains('delete-btn')) {
+                    const row = event.target.closest('tr');
+                    const id = row.getAttribute('data-id');
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'You will not be able to recover this user!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'No, keep it'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                method: 'DELETE',
+                                url: `/users/delete/${id}`,
+                                success: function () {
+                                    row.remove();
+                                    notify('User deleted', 'success');
+                                },
+                                error: function () {
+                                    notify('Server error', 'error');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Add form submit event listener
+            $('#addForm').submit(function (e) {
+                e.preventDefault();
+                const firstName = this.firstName.value;
+                const lastName = this.lastName.value;
+                const email = this.email.value;
+
+                if (validate(firstName, lastName, email)) {
+                    $.ajax({
+                        method: 'POST',
+                        url: '/users/create',
+                        data: { firstName, lastName, email },
+                        success: function (data) {
+                            const parsedData = JSON.parse(data);
+                            const table = document.querySelector('tbody');
+                            const newRow = table.insertRow(table.rows.length - 1);
+                            newRow.setAttribute('data-id', parsedData.ID);
+                            newRow.innerHTML = `
+                        <td>${parsedData.ID}</td>
+                        <td>${firstName}</td>
+                        <td>${lastName}</td>
+                        <td>${email}</td>
+                        <td>
+                            <button class="btn btn-primary edit-btn">Edit</button>
+                            <button class="btn btn-danger delete-btn">Delete</button>
+                        </td>
+                    `;
+                            document.getElementById('addForm').reset();
+                            notify('User added', 'success');
+                        },
+                        error: function () {
+                            notify('Server error', 'error');
+                        }
+                    });
+                } else {
+                    notify('Invalid input', 'error');
+                }
+            });
+        });
+
+        function validate(firstName, lastName, email) {
+            if (firstName.trim() === '' || lastName.trim() === '' || email.trim() === '') {
+                return false;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+    </script>
+{{end}}

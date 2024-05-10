@@ -1,0 +1,161 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <a href="/">< return to home page</a>
+        <h1>assignments</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range .Data.Assignments}}
+                <tr data-id="{{.ID}}">
+                    <td>{{.ID}}</td>
+                    <td>{{.Title}}</td>
+                    <td>
+                        <button class="btn btn-primary edit-btn">Edit</button>
+                        <button class="btn btn-danger delete-btn">Delete</button>
+                    </td>
+                </tr>
+            {{end}}
+            <tr>
+                <form id="addForm">
+                    <td id="lastRow"></td>
+                    <td><input type="text" class="form-control" placeholder="Title" name="title" required></td>
+                    <td><button type="submit" class="btn btn-success">Add</button></td>
+                </form>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+{{end}}
+
+{{define "js"}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.body.addEventListener('click', function (event) {
+        if(event.target.classList.contains('edit-btn')){
+        const row = event.target.closest('tr');
+        const id = row.getAttribute('data-id');
+        const title = row.cells[1].textContent;
+
+        Swal.fire({
+            title: 'Edit assignment',
+            html:`
+            <input id="swal-input1" class="swal2-input" value="${title}">
+            `,
+
+            focusConfirm: true,
+            showCancelButton: true,
+            confirmButtonText: 'Save',
+            cancelButtonText: 'Cancel',
+            preConfirm: () => {
+                return[
+                    document.getElementById('swal-input1').value
+                ];
+            },
+        }).then(result => {
+            if(result.isConfirmed){
+                const[title] = result.value;
+                if(validate(title)){
+                    $.ajax({
+                        method: 'PUT',
+                        url: '/assignments/update',
+                        data: {id, title},
+                        success: function (){
+                            row.cells[1].textContent = title;
+                            notify('Assignment updated','success')
+                        },
+                        error: function (){
+                            notify('Error updating assignment','error')
+                        }
+                    });
+                }else{
+                    notify('Invalid input', 'error');
+                }
+            }
+        });
+        }else if(event.target.classList.contains('delete-btn')){
+            const row = event.target.closest('tr');
+            const id = row.getAttribute('data-id')
+
+            Swal.fire({
+                title:'Are you sure?',
+                text: 'You will not be able to recover this assignment!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No, keep it!'
+            }).then(result => {
+                if (result.isConfirmed){
+                    $.ajax({
+                        method: 'DELETE',
+                        url: '/assignments/delete/'+id,
+                        success: function (){
+                            row.remove();
+                            notify('Assignment deleted','success')
+                        },
+                        error: function (){
+                            notify('Server error','error')
+                        }
+                    });
+                }
+            })
+        }
+     });
+
+        $('#addForm').submit(function (e){
+            e.preventDefault();
+            const title = this.title.value;
+
+            if(validate(title)){
+                $.ajax({
+                    method: 'POST',
+                    url: '/assignments/create',
+                    data:{title},
+                    success: function (data){
+                        const parsedData = JSON.parse(data);
+                        const table = document.querySelector('tbody');
+                        const newRow = table.insertRow(table.rows.length-1);
+                        newRow.setAttribute('data-id',parsedData.ID);
+                        newRow.innerHTML=`
+                        <td>${parsedData.ID}</td>
+                        <td>${title}</td>
+                        <td>
+                        <button class="btn btn-primary edit-btn">Edit</button>
+                        <button class="btn btn-danger delete-btn">Delete</button>
+                            </td>
+
+            `;
+                        document.getElementById('addForm').reset();
+                        notify('Assignment added','success')
+                    },
+                    error: function (){
+                        notify('Server Error','error')
+                    }
+                });
+            }else{
+                notify('Server Error','error')
+            }
+
+
+
+        });
+
+
+
+
+
+    });
+
+    function validate(name){
+        return name.length > 0;
+    }
+
+</script>
+{{end}}
