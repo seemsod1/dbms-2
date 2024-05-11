@@ -15,17 +15,19 @@ import (
 
 // Users is the handler for the users page
 func (m *Repository) Users(w http.ResponseWriter, r *http.Request) {
-
 	var users []models.User
-	m.App.DB.Order("id").Find(&users)
+
+	if err := m.App.DB.Order("id").Find(&users).Error; err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
 	data := make(map[string]interface{})
 	data["Users"] = users
 
-	err := render.Template(w, r, "users.page.tmpl", &models.TemplateData{
+	if err := render.Template(w, r, "users.page.tmpl", &models.TemplateData{
 		Data: data,
-	})
-	if err != nil {
+	}); err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -51,14 +53,13 @@ func (m *Repository) UsersUpdate(w http.ResponseWriter, r *http.Request) {
 		helpers.ServerError(w, err)
 		return
 	}
-	err = m.App.DB.Model(&models.User{}).
+	if err = m.App.DB.Model(&models.User{}).
 		Where("id = ?", userID).Updates(models.User{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
 	},
-	).Error
-	if err != nil {
+	).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -76,8 +77,7 @@ func (m *Repository) UsersDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.App.DB.Where("id = ?", uID).Delete(&models.User{}).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", uID).Delete(&models.User{}).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}

@@ -101,7 +101,7 @@
                     <div class="border rounded p-3 mb-3">
                         <form id="form7" action="/complex-query/2" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form7', '/complex-query/2');">
                             <div class="mb-3">
-                                <label for="firstUserID" class="form-label">2. Find car which was rented by pair of users. Select first User:</label>
+                                <label for="firstUserID" class="form-label">2. Retrieve cars that have been rented to two different users at least once. Select first User:</label>
                                 <select class="form-select" id="firstUserID" name="firstUserID">
                                     {{range .Data.Users}}
                                         <option value="{{.ID}}">{{.FirstName}} {{.LastName}}</option>
@@ -120,7 +120,7 @@
                     <div class="border rounded p-3 mb-3">
                         <form id="form8" action="/complex-query/3" method="POST" onsubmit="event.preventDefault(); submitFormWithAjax('form8', '/complex-query/3');">
                             <div class="mb-3">
-                                <label for="firstCarID" class="form-label">3. Find assignment similar for two cars. Select first Car:</label>
+                                <label for="firstCarID" class="form-label">3. Find similar assignment for two cars. Select first Car:</label>
                                 <select class="form-select" id="firstCarID" name="firstCarID">
                                     {{range .Data.Cars}}
                                         <option value="{{.ID}}">{{.Brand}} {{.Model}}</option>

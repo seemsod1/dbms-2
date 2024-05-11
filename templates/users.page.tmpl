@@ -53,7 +53,7 @@
                     const email = row.cells[3].textContent;
 
                     Swal.fire({
-                        title: 'Edit Car',
+                        title: 'Edit User',
                         html: `
                     <input id="swal-input1" class="swal2-input" value="${firstName}" placeholder="First Name">
                     <input id="swal-input2" class="swal2-input" value="${lastName}" placeholder="Last Name">
@@ -122,7 +122,6 @@
                 }
             });
 
-            // Add form submit event listener
             $('#addForm').submit(function (e) {
                 e.preventDefault();
                 const firstName = this.firstName.value;

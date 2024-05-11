@@ -15,7 +15,10 @@ import (
 // Rents is the handler for the rents page
 func (m *Repository) Rents(w http.ResponseWriter, r *http.Request) {
 	var rents []models.Rent
-	m.App.DB.Order("id").Find(&rents)
+	if err := m.App.DB.Order("id").Find(&rents).Error; err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
 	data := make(map[string]interface{})
 	data["Rents"] = rents
@@ -73,28 +76,24 @@ func (m *Repository) RetsUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	//check if user exists
 	var user models.User
-	err = m.App.DB.Where("id = ?", userIDint).First(&user).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", userIDint).First(&user).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 	//check if car exists
 
 	var car models.Car
-	err = m.App.DB.Where("id = ?", carIDint).First(&car).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", carIDint).First(&car).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 
-	err = m.App.DB.Model(&models.Rent{}).
+	if err = m.App.DB.Model(&models.Rent{}).
 		Where("id = ?", rentIDint).Updates(models.Rent{
 		UserID: userIDint,
 		CarID:  carIDint,
 		Total:  totalInt,
-	}).Error
-
-	if err != nil {
+	}).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -113,8 +112,7 @@ func (m *Repository) RentsDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.App.DB.Where("id = ?", rID).Delete(&models.Rent{}).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", rID).Delete(&models.Rent{}).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -159,16 +157,14 @@ func (m *Repository) RentsCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	//check if user exists
 	var user models.User
-	err = m.App.DB.Where("id = ?", userIDint).First(&user).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", userIDint).First(&user).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 	//check if car exists
 
 	var car models.Car
-	err = m.App.DB.Where("id = ?", carIDint).First(&car).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", carIDint).First(&car).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -179,8 +175,7 @@ func (m *Repository) RentsCreate(w http.ResponseWriter, r *http.Request) {
 		Total:  totalInt,
 	}
 
-	err = m.App.DB.Create(&rent).Error
-	if err != nil {
+	if err = m.App.DB.Create(&rent).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}

@@ -17,7 +17,10 @@ import (
 // Cars is the handler for the car page
 func (m *Repository) Cars(w http.ResponseWriter, r *http.Request) {
 	var cars []models.Car
-	m.App.DB.Order("id").Find(&cars)
+	if err := m.App.DB.Order("id").Find(&cars).Error; err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
 	data := make(map[string]interface{})
 	data["Cars"] = cars
@@ -58,14 +61,13 @@ func (m *Repository) CarsUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.App.DB.Model(&models.Car{}).
+	if err = m.App.DB.Model(&models.Car{}).
 		Where("id = ?", carID).Updates(models.Car{
 		Brand: brandName,
 		Model: modelName,
 		Year:  yearInt,
 	},
-	).Error
-	if err != nil {
+	).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -83,14 +85,12 @@ func (m *Repository) CarsDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.App.DB.Table("assignments_junction").Where("car_id = ?", cID).Delete(nil).Error
-	if err != nil {
+	if err = m.App.DB.Table("assignments_junction").Where("car_id = ?", cID).Delete(nil).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 
-	err = m.App.DB.Where("id = ?", cID).Delete(&models.Car{}).Error
-	if err != nil {
+	if err = m.App.DB.Where("id = ?", cID).Delete(&models.Car{}).Error; err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
@@ -127,8 +127,7 @@ func (m *Repository) CarsCreate(w http.ResponseWriter, r *http.Request) {
 		Model: modelName,
 		Year:  yearInt,
 	}
-	err = m.App.DB.Create(&car).Error
-	if errors.Is(err, gorm.ErrDuplicatedKey) {
+	if err = m.App.DB.Create(&car).Error; errors.Is(err, gorm.ErrDuplicatedKey) {
 		fmt.Println("Car already exists")
 		return
 	}
@@ -136,7 +135,6 @@ func (m *Repository) CarsCreate(w http.ResponseWriter, r *http.Request) {
 		helpers.ServerError(w, err)
 		return
 	}
-	//write id of the car to response
 	w.WriteHeader(http.StatusCreated)
 	rend.JSON(w, r, car)
 }
