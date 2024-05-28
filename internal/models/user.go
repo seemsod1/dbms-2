@@ -6,5 +6,5 @@ type User struct {
 	FirstName string
 	LastName  string
 	Email     string `gorm:"unique"`
-	Rents     []Rent `gorm:"constraint:OnDelete:CASCADE;"`
+	Rents     []Rent `gorm:"constraint:OnDelete:CASCADE;" json:",omitempty"`
 }

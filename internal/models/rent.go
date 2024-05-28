@@ -4,8 +4,8 @@ package models
 type Rent struct {
 	ID     int
 	UserID int
-	User   User
+	User   User `json:",omitempty"`
 	CarID  int
-	Car    Car
+	Car    Car `json:",omitempty"`
 	Total  float64
 }

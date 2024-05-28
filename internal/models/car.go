@@ -6,6 +6,6 @@ type Car struct {
 	Brand       string
 	Model       string
 	Year        int
-	Assignments []Assignment `gorm:"many2many:assignments_junction;"`
-	Rents       []Rent       `gorm:"constraint:OnDelete:CASCADE;"`
+	Assignments []Assignment `gorm:"many2many:assignments_junction;" json:",omitempty" `
+	Rents       []Rent       `gorm:"constraint:OnDelete:CASCADE;" json:",omitempty"`
 }
